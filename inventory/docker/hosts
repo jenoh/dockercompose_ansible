@@ -1,0 +1,4 @@
+[back]
+backend ansible_host=localhost ansible_port=2222 ansible_user="root" ansible_pass=""
+[front]
+frontend ansible_host=localhost ansible_port=2223 ansible_user="root" ansible_pass=""

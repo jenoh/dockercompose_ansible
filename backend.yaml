@@ -1,0 +1,45 @@
+- hosts: back
+  become: yes
+  tasks:
+
+    - name: Get the latest release of the repository                                                                       
+      uri: url="https://gitlab.com/api/v4/projects/32996551/releases" return_content=yes  
+      register: release_url     
+
+    - name: The version of the last release
+      debug: var=release_url.json.0.name
+
+    - name : Pull th project inside code folder
+      ansible.builtin.git:
+        repo: 'https://gitlab.com/theomemin/ansible_laravel_template'
+        dest: code
+        force: yes
+        version: "{{ release_url.json.0.name }}"
+
+    - name: Install lamp stack
+      apt:
+        pkg:
+          - php7.4-mysql
+          - php7.4-curl
+          - php7.4-json
+          - php7.4-cgi
+          - php7.4-xsl
+          - php7.4-cgi
+          - php7.4-gd
+          - php7.4-mbstring
+          - php7.4-zip
+          - php7.4-xmlrpc
+          - php7.4-soap
+          - php7.4-intl
+          - libapache2-mod-php
+        state: present
+        update_cache: yes
+
+    - name: Install composer
+      apt: name=composer
+
+    - name: Install vendor
+      shell: cd code && rm composer.lock && composer install
+
+    - name: Launch server
+      shell: cd code && php artisan serve &

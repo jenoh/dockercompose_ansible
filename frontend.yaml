@@ -1,0 +1,40 @@
+- hosts: front
+  become: yes
+  tasks:
+
+    - name: Get the latest release of the repository                                                                       
+      uri: url="https://gitlab.com/api/v4/projects/32995234/releases" return_content=yes  
+      register: release_url     
+
+    - name: The version of the last release
+      debug: var=release_url.json.0.name
+
+    - name : Pull the project inside code folder
+      ansible.builtin.git:
+        repo: 'https://gitlab.com/theomemin/ansible_angular_template'
+        dest: code
+        force: yes
+        version: "{{ release_url.json.0.name }}"
+
+    - name: Install lamp stack
+      apt:
+        pkg:
+          - nodejs
+          - npm
+        state: present
+        update_cache: yes
+
+    - name: Install yarn
+      shell: npm install --global yarn
+    
+    - name: Install Angular CLI
+      shell: npm install -g @angular/cli    
+    
+    - name: Install pm2
+      shell: npm install -g pm2   
+
+    - name: Install node modules
+      shell: cd code && npm install
+
+    - name: Launch server
+      shell: cd code && pm2 start "ng serve --host 0.0.0.0"
